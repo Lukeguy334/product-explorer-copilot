@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+import QuoteCard from "./components/QuoteCard";
+import RefreshButton from "./components/RefreshButton";
+
 /*
   App: Quote Generator
   Features:
@@ -8,18 +12,24 @@
   API: https://api.quotable.io/random
 */
 
-import { useEffect, useState } from "react";
-import QuoteCard from "./components/QuoteCard";
-import RefreshButton from "./components/RefreshButton";
-
 // Fetch a random quote from the Quotable API and store it in state
 function App() {
   const [quote, setQuote] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchQuote = async () => {
-    const res = await fetch("https://api.quotable.io/random");
-    const data = await res.json();
-    setQuote(data);
+    setLoading(true);
+    try {
+      const res = await fetch("https://api.quotable.io/random");
+      if (!res.ok) throw new Error("Failed to fetch quote");
+      const data = await res.json();
+      setQuote(data);
+    } catch (err) {
+      console.error("Error fetching quote:", err);
+      setQuote({ content: "Could not load quote. Try again.", author: "Error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -27,8 +37,9 @@ function App() {
   }, []);
 
   return (
-    <div className="app" style={{ padding: "2rem", textAlign: "center" }}>
-      {quote ? <QuoteCard quote={quote} /> : <p>Loading...</p>}
+    <div style={{ padding: "2rem", textAlign: "center", fontFamily: "Arial, sans-serif" }}>
+      <h1>Random Quote Generator</h1>
+      {loading ? <p>Loading...</p> : <QuoteCard quote={quote} />}
       <RefreshButton onClick={fetchQuote} />
     </div>
   );
